@@ -2,7 +2,7 @@
   "name": "typosquat-dependency-companion",
   "displayName": "Typosquat Dependency Companion",
   "description": "Flags a package.json dependency whose name is a near-miss (edit distance 1-2) of a much more popular package -- possible typosquat/dependency confusion. No data leaves your editor.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "GapHunterLabs",
   "icon": "images/icon.png",
   "license": "Apache-2.0",
