@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { findTyposquatSuspects } from './typosquatDetector';
 import { POPULAR_PACKAGES } from './popularPackages';
+import { recordHit } from './reviewPrompt';
 
 let diagnostics: vscode.DiagnosticCollection;
 
@@ -24,7 +25,7 @@ function lineOfDependency(packageJsonText: string, name: string): number {
   return index === -1 ? 0 : index;
 }
 
-function refresh(document: vscode.TextDocument): void {
+function refresh(context: vscode.ExtensionContext, document: vscode.TextDocument): void {
   const path = document.uri.path;
   if (!path.endsWith('package.json') || path.includes('/node_modules/')) {
     diagnostics.delete(document.uri);
@@ -52,6 +53,7 @@ function refresh(document: vscode.TextDocument): void {
       vscode.DiagnosticSeverity.Warning,
     );
     diagnostic.source = 'Typosquat Dependency Companion';
+    recordHit(context, `${document.uri.toString()}:${suspect.dependencyName}`);
     return diagnostic;
   });
   diagnostics.set(document.uri, result);
@@ -61,11 +63,11 @@ export function activate(context: vscode.ExtensionContext): void {
   diagnostics = vscode.languages.createDiagnosticCollection('typosquatDependencyCompanion');
   context.subscriptions.push(diagnostics);
 
-  vscode.workspace.textDocuments.forEach(refresh);
+  vscode.workspace.textDocuments.forEach((document) => refresh(context, document));
 
   context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(refresh),
-    vscode.workspace.onDidChangeTextDocument((event) => refresh(event.document)),
+    vscode.workspace.onDidOpenTextDocument((document) => refresh(context, document)),
+    vscode.workspace.onDidChangeTextDocument((event) => refresh(context, event.document)),
     vscode.workspace.onDidCloseTextDocument((document) => diagnostics.delete(document.uri)),
   );
 }
